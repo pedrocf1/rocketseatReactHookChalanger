@@ -29,10 +29,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       return JSON.parse(storagedCart);
     }
 
-    return [{id: 1,
-      image: "https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis1.jpg",
-      price: 179.9,
-      title: "Tênis de Caminhada Leve Confortável"}];
+    return [];
   });
 
   const addProduct = async (productId: number) => {
@@ -43,17 +40,30 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       }
       updateProductAmount(productAmountToUpdate)
     } catch {
-      // TODO
+      toast.error("Não foi possivel adicionar produto do carrinho produto")
     }
   };
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
+      console.log("vou remover")
+      const newCart = cart.filter(async(product)=> {
+        if(product.id !== productId){
+          return true
+        }else{
+          const stock = await (await api.get(`stock/${productId}`)).data
+          stock.amount += product.amount
+          const putResult = await api.put(`stock/${productId}`, stock)
+          toast.success("Removido do carrinho com sucesso!")
+          return false
+        }
+      })
+      setCart(newCart)
     } catch {
-      // TODO
+      toast.error("Não foi possivel remover produto do carrinho produto")
     }
   };
+  
 
   const updateProductAmount = async ({
     productId,
@@ -63,16 +73,18 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       
       api.get(`stock/${productId}`).then( async (result) =>{
         const stock:Stock = result.data
-
+        console.log("stock antes", result.data)
         const product = await (await api.get<Product>(`products/${productId}`)).data
 
         if(!isValidStockOperation(product, stock, amount)){
           return
-        }        
+        }    
+
         api.put(`stock/${productId}`, stock).then(result=>{
+          console.log("result depois", result.data)
           addProductToCart(product)
           toast.success("Carrinho atualizado com sucesso!")
-        }).catch(err=> console.log('err', err))
+        }).catch(err=> toast.error("Erro ao atualizar o carrinho! Por favor tente mais tarde."))
 
       }).catch(error=> toast.error("Erro ao atualizar o carrinho! Por favor tente mais tarde."))
       
@@ -82,7 +94,8 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   };
 
   const canAlterCart = (product:Product, amount:number):boolean => {
-    if(product.amount === 0){
+    product.amount = product.amount ? product.amount : 0
+    if((product.amount + amount) < 0){
       return false;
     }
     product.amount += amount
@@ -114,15 +127,14 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const addProductToCart = (product:Product)=>{
     const newCart = [...cart]
     if(newCart.length){
-    for (let i = 0; i < newCart.length; i++) {
-      console.log(i, cart.length)
-      if(cart[i].id === product.id){
-        newCart[i] = product
-        break;
-      }else if(i === cart.length-1){
-        newCart.push(product)
+      for (let i = 0; i < newCart.length; i++) {
+        if(cart[i].id === product.id){
+          newCart[i] = product
+          break;
+        }else if(i === cart.length-1){
+          newCart.push(product)
+        }
       }
-    }
     }else{
       setCart([...cart, product])
     }

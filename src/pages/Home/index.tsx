@@ -40,10 +40,7 @@ const Home = (): JSX.Element => {
        dataProducts.forEach(product => {
          formatedProducts.push({
            ...product,
-           priceFormatted: new Intl.NumberFormat('pt-BR', {
-             style: 'currency',
-             currency: 'BRL'
-           }).format(product.price)
+           priceFormatted: formatPrice(product.price)
          });
        });
        console.log(formatedProducts)
