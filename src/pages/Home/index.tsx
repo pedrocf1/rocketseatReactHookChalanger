@@ -46,9 +46,9 @@ const Home = (): JSX.Element => {
            }).format(product.price)
          });
        });
+       console.log(formatedProducts)
        setProducts(formatedProducts);
      }
-     console.log(dataProducts, )
     })
   }
   useEffect(() => {
@@ -57,7 +57,7 @@ const Home = (): JSX.Element => {
   }, []);
 
   function handleAddProduct(id: number) {
-    // TODO
+    addProduct(id)
   }
 
   return (
