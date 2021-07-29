@@ -43,7 +43,6 @@ const Home = (): JSX.Element => {
            priceFormatted: formatPrice(product.price)
          });
        });
-       console.log(formatedProducts)
        setProducts(formatedProducts);
      }
     })
